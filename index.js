@@ -13,8 +13,9 @@ bot.on('ready', () => {
 
 let prices = [];
 let lastDay;
+let lastMorning = new Date().getUTCHours() - 4 < 12;
 
-const sortPrices = () => prices = prices.sort((a, b) => a.price > b.price);
+const sortPricesLowToHigh = () => prices = prices.sort((a, b) => a.price - b.price);
 
 bot.on('message', message => {
     if (!message.content.startsWith(command)) {
@@ -22,9 +23,11 @@ bot.on('message', message => {
     }
 
     const date = message.createdAt;
-    if (date.getDay() !== lastDay) {
+    const isMorning = date.getUTCHours() - 4 < 12;
+    if (date.getDay() !== lastDay && lastMorning === isMorning) {
         prices = [];
         lastDay = date.getDay();
+        lastMorning = isMorning;
     }
 
     const param = message.content.substring(command.length).trim();
@@ -32,7 +35,7 @@ bot.on('message', message => {
 
     if (param.length === 0) {
         if (prices.length === 0) {
-            message.channel.send('No turnip prices have been listed today. Add yours with `!turnips 123`');
+            message.channel.send(`No turnip prices have been listed this ${isMorning ? 'morning' : 'afternoon'}. Add yours with \`!turnips 123\``);
             return;
         }
     } else {
@@ -48,8 +51,8 @@ bot.on('message', message => {
         prices.push({ username: user, price: valueInt })
     }
 
-    sortPrices();
+    sortPricesLowToHigh();
     const buyOrSell = isBuyPrice ? 'buy' : 'sell';
-    const bestPrice = isBuyPrice ? prices[price.length - 1] : prices[0];
+    const bestPrice = isBuyPrice ? prices[0] : prices[price.length - 1];
     message.channel.send(`Current best price to ${buyOrSell} turnips is on **${bestPrice.username}**'s island for **${bestPrice.price}** bells.`);
 })
