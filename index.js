@@ -13,6 +13,9 @@ bot.on('ready', () => {
 
 let prices = [];
 let lastDay;
+
+const sortPrices = () => prices = prices.sort((a, b) => a.price > b.price);
+
 bot.on('message', message => {
     if (!message.content.startsWith(command)) {
         return;
@@ -25,14 +28,28 @@ bot.on('message', message => {
     }
 
     const param = message.content.substring(command.length).trim();
+    const isBuyPrice = date.getDay() === 0;
 
-    const valueInt = parseInt(param)
-    if (isNaN(valueInt)) {
-        message.reply(`${valueInt} is not an integer, and therefore not a valid price.`);
-        return;
+    if (param.length === 0) {
+        if (prices.length === 0) {
+            message.channel.send('No turnip prices have been listed today. Add yours with `!turnips 123`');
+            return;
+        }
+    } else {
+        const valueInt = parseInt(param)
+        if (isNaN(valueInt)) {
+            message.reply(`${valueInt} is not an integer, and therefore not a valid price.`);
+            return;
+        }
+
+        const user = message.member.displayName;
+        const boughtOrSold = isBuyPrice ? 'bought' : 'sold';
+        message.channel.send(`Turnips can be ${boughtOrSold} on ${user}'s island for **${valueInt}** bells.`);
+        prices.push({ username: user, price: valueInt })
     }
-    const isBuyPrice = date.getDay() !== 0;
-    const boughtOrSold = isBuyPrice ? 'bought' : 'sold';
 
-    message.channel.send(`Turnips are being ${boughtOrSold} on ${message.member.user.username}'s island for **${valueInt}** bells.`);
+    sortPrices();
+    const buyOrSell = isBuyPrice ? 'buy' : 'sell';
+    const bestPrice = isBuyPrice ? prices[price.length - 1] : prices[0];
+    message.channel.send(`Current best price to ${buyOrSell} turnips is on **${bestPrice.username}**'s island for **${bestPrice.price}** bells.`);
 })
