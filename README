@@ -1,0 +1,8 @@
+# Usage
+`!turnips <price>` to contribute your island's prices.
+
+## Running
+0. Make a bot, get it in your server
+1. Put your bot's token in a `.env` file
+2. `npm i`
+3. `npm run start`
